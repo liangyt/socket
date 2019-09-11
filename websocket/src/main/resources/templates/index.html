@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>WebSocket</title>
+    <script th:src="@{/webjars/jquery/3.0.0/jquery.min.js}"></script>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.3.1/css/bootstrap.css}" />
+    <script th:src="@{/webjars/bootstrap/4.3.1/js/bootstrap.min.js}"></script>
+</head>
+<body>
+<div class="container-fluid" id="container">
+    <div class="row">
+        <div class="col-sm-12 text-center" id="conn-tip">
+
+        </div>
+    </div>
+</div>
+
+<div class="input-group mb-3">
+    <input type="text" class="form-control" placeholder="请输入您的问题" id="content">
+    <div class="input-group-append">
+        <button class="btn btn-outline-secondary" type="button" id="send">发送</button>
+        <button class="btn btn-outline-secondary" type="button" id="close">关闭</button>
+        <button class="btn btn-outline-secondary" type="button" id="conn">连接</button>
+    </div>
+</div>
+
+<script>
+
+    function Socket() {
+        this.socket = null;
+        this.container = $('#container');
+        this.content = $('#content');
+
+        this.init();
+    }
+
+    Socket.prototype.init = function () {
+        this.conn();
+        this.event();
+    }
+
+    Socket.prototype.conn = function () {
+        // 协议 ws/wss
+        this.socket = new WebSocket("ws://" + window.location.host + "/answer?userid=1234abcd");
+        this.socket.onopen = this.open;
+        this.socket.onmessage = this.message;
+        this.socket.onclose = this.close;
+    }
+
+    // 这里的this作用域是WebSocket
+    Socket.prototype.open = function () {
+        $('#conn-tip').text('客服已连接');
+    }
+
+    // 这里的this作用域是WebSocket
+    Socket.prototype.message = function (event) {
+        var text = '<div class="row text-left">'
+            + '<div class="col-sm-1">客服</div>'
+            + '<div class="col-sm-6">'
+            + event.data
+            + '</div>'
+            + '</div>';
+
+        $('#container').append(text);
+    }
+
+    // 这里的this作用域是WebSocket
+    Socket.prototype.close = function () {
+        $('#conn-tip').text('客服已断开');
+    }
+
+    Socket.prototype.send = function (msg) {
+        this.socket && this.socket.send(msg);
+
+        var text = '<div class="row text-right">'
+                        + '<div class="col-sm-5"></div>'
+                            + '<div class="col-sm-6">'
+                                + msg
+                            + '</div>'
+                        + '<div class="col-sm-1">问题</div>'
+                    + '</div>';
+
+        this.container.append(text);
+    }
+
+    // 事件监听
+    Socket.prototype.event = function () {
+        var self = this;
+        // 发送
+        $('#send').on('click', function (e) {
+            var content = self.content.val();
+            if ('' == content) {
+                alert("发送内容不能为空")
+                return false;
+            }
+
+            self.send(content);
+
+            self.content.val(''); // 清空内容
+            e.preventDefault();
+        })
+
+        // 关闭
+        $('#close').on('click', function (e) {
+            self.socket && self.socket.close();
+            e.preventDefault();
+        })
+
+        // 连接
+        $('#conn').on('click', function (e) {
+            self.conn();
+            e.preventDefault();
+        })
+    }
+
+    $(function () {
+        var socket = new Socket();
+    })
+    
+</script>
+</body>
+</html>
