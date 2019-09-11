@@ -29,6 +29,14 @@
 
 <script>
 
+    // 获取参数
+    function queryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return decodeURIComponent(r[2]);
+        return null;
+    }
+
     function Socket() {
         this.socket = null;
         this.container = $('#container');
@@ -43,8 +51,9 @@
     }
 
     Socket.prototype.conn = function () {
+        var userId = queryString('userid') || '123456';
         // 这里是跟 WebSocket 区别的地方： 协议 http/https
-        this.socket = new SockJS("http://" + window.location.host + "/answerSockJs?userid=abcd");
+        this.socket = new SockJS("http://" + window.location.host + "/answerSockJs?userid=" + userId);
         this.socket.onopen = this.open;
         this.socket.onmessage = this.message;
         this.socket.onclose = this.close;
