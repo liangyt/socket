@@ -30,3 +30,8 @@ logs
 admin/node_modules/
 picc.tar.gz
 .vscode
+
+.mvn/
+mvnw
+mvnw.cmd
+.DS_Store
